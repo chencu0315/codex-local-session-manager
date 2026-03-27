@@ -278,22 +278,56 @@ h1 {
 
 .compact-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 6px;
   margin-top: 6px;
+}
+
+.status-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.status-action-row {
+  display: grid;
+  gap: 6px;
+}
+
+.status-action-row.primary-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.status-action-row.secondary-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .primary-button,
 .secondary-button,
 .danger-button,
 .theme-button {
+  --button-height: 38px;
+  --button-padding-x: 14px;
+  --button-font-size: 0.82rem;
+  min-height: var(--button-height);
+  min-width: 0;
+  padding: 0 var(--button-padding-x);
   border-radius: 999px;
   border: 1px solid var(--border);
-  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--button-font-size);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg-elevated), transparent 28%);
   transition:
     background-color 180ms ease,
     color 180ms ease,
     border-color 180ms ease,
+    box-shadow 180ms ease,
     transform 180ms ease,
     opacity 180ms ease;
 }
@@ -301,7 +335,11 @@ h1 {
 .primary-button:hover,
 .secondary-button:hover,
 .danger-button:hover,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.danger-button:focus-visible,
 .theme-button:hover,
+.theme-button:focus-visible,
 .session-item:hover,
 .session-main:hover {
   transform: translateY(-1px);
@@ -311,12 +349,31 @@ h1 {
   background: var(--accent);
   color: var(--accent-contrast);
   border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--accent-contrast), transparent 72%),
+    0 10px 24px color-mix(in srgb, var(--accent), transparent 84%);
 }
 
 .secondary-button,
 .theme-button {
-  background: transparent;
+  background: var(--surface-strong);
   color: var(--text);
+  border-color: var(--border);
+}
+
+.primary-button:hover,
+.primary-button:focus-visible {
+  background: color-mix(in srgb, var(--accent), var(--bg-elevated) 10%);
+  border-color: color-mix(in srgb, var(--accent), var(--bg-elevated) 10%);
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible,
+.theme-button:hover,
+.theme-button:focus-visible {
+  background: color-mix(in srgb, var(--surface-strong), var(--accent) 6%);
+  border-color: var(--border-strong);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg-elevated), transparent 18%);
 }
 
 .repo-link {
@@ -325,7 +382,9 @@ h1 {
 
 .secondary-button.small,
 .danger-button.small {
-  padding: 8px 12px;
+  min-height: var(--button-height);
+  padding-inline: var(--button-padding-x);
+  font-size: var(--button-font-size);
 }
 
 .danger-button {
@@ -333,10 +392,28 @@ h1 {
   color: #ffffff;
   border-color: var(--danger);
   white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff, transparent 78%),
+    0 10px 24px color-mix(in srgb, var(--danger), transparent 84%);
 }
 
 .danger-button.subtle {
-  background: var(--danger-soft);
+  background: color-mix(in srgb, var(--danger-soft), var(--surface-strong) 45%);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger), transparent 76%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--bg-elevated), transparent 24%);
+}
+
+.danger-button:hover,
+.danger-button:focus-visible {
+  background: color-mix(in srgb, var(--danger), var(--bg-elevated) 8%);
+  border-color: color-mix(in srgb, var(--danger), var(--bg-elevated) 8%);
+}
+
+.danger-button.subtle:hover,
+.danger-button.subtle:focus-visible {
+  background: color-mix(in srgb, var(--danger-soft), var(--surface-strong) 28%);
+  border-color: color-mix(in srgb, var(--danger), transparent 62%);
   color: var(--danger);
 }
 
@@ -344,12 +421,19 @@ button:disabled {
   opacity: 0.48;
   cursor: not-allowed;
   transform: none;
+  box-shadow: none;
+}
+
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.danger-button:focus-visible,
+.theme-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent), transparent 52%);
+  outline-offset: 2px;
 }
 
 .theme-button {
-  min-width: 84px;
-  padding: 7px 10px;
-  font-size: 0.82rem;
+  min-width: 38px;
 }
 
 .icon-button {
@@ -360,16 +444,13 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border-radius: 999px;
 }
 
 .locale-button {
   min-width: 38px;
   height: 38px;
-  padding: 0 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
+  padding: 0 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -402,6 +483,9 @@ button:disabled {
   background: var(--accent);
   color: var(--accent-contrast);
   border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--accent-contrast), transparent 72%),
+    0 10px 24px color-mix(in srgb, var(--accent), transparent 84%);
 }
 
 .badge {
@@ -479,8 +563,9 @@ dd {
 }
 
 .toolbar-button {
-  padding: 7px 10px;
-  font-size: 0.82rem;
+  min-height: var(--button-height);
+  padding-inline: var(--button-padding-x);
+  font-size: var(--button-font-size);
   white-space: nowrap;
 }
 
@@ -746,10 +831,18 @@ dd {
 }
 
 .detail-actions {
+  display: grid;
+  gap: 8px;
+  flex-shrink: 0;
+  justify-items: end;
+}
+
+.detail-action-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 #download-current-button,
@@ -996,6 +1089,61 @@ dd {
   background: color-mix(in srgb, var(--danger-soft), transparent 12%);
 }
 
+.modal-warning-box .body-copy {
+  white-space: pre-line;
+}
+
+.modal-path-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.modal-path-item {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-strong), var(--bg-elevated) 18%);
+  padding: 10px 12px;
+  display: grid;
+  gap: 5px;
+}
+
+.modal-path-title {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modal-path-value {
+  color: var(--text);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.modal-directory-footnote {
+  margin-top: 4px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.modal[data-variant="info"] .modal-icon {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent), transparent 92%);
+  border-color: color-mix(in srgb, var(--accent), transparent 80%);
+}
+
+.modal[data-variant="info"] .modal-subtitle {
+  color: var(--text-soft);
+}
+
+.modal[data-variant="info"] .modal-warning-box {
+  border-color: var(--border);
+  background: var(--surface-soft);
+}
+
 @media (max-width: 1240px) {
   .hero {
     grid-template-columns: 1fr;
@@ -1080,15 +1228,22 @@ dd {
   .list-head-right,
   .session-row,
   .pagination-bar,
-  .modal-actions,
-  .compact-actions {
+  .modal-actions {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .compact-actions {
-    display: grid;
-    grid-template-columns: 1fr;
+  .status-action-row.primary-row,
+  .status-action-row.secondary-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail-actions {
+    justify-items: stretch;
+  }
+
+  .detail-action-row {
+    justify-content: stretch;
   }
 
   .bottom-panels {
@@ -1172,19 +1327,23 @@ dd {
                 <dd id="status-scanned-at">-</dd>
               </div>
             </dl>
-            <div class="action-stack compact-actions">
-              <button id="pick-directory-button" class="primary-button toolbar-button" type="button">
-                选择目录
-              </button>
-              <button id="reload-button" class="secondary-button toolbar-button" type="button" disabled>
-                重新扫描
-              </button>
-              <button id="delete-selected-button" class="danger-button toolbar-button" type="button" disabled>
-                删除选中
-              </button>
-              <button id="delete-all-button" class="danger-button subtle toolbar-button" type="button" disabled>
-                删除全部
-              </button>
+            <div class="compact-actions status-actions">
+              <div class="status-action-row primary-row">
+                <button id="pick-directory-button" class="primary-button toolbar-button" type="button">
+                  选择目录
+                </button>
+                <button id="reload-button" class="secondary-button toolbar-button" type="button" disabled>
+                  重新扫描
+                </button>
+              </div>
+              <div class="status-action-row secondary-row">
+                <button id="delete-all-button" class="danger-button subtle toolbar-button" type="button" disabled>
+                  删除全部
+                </button>
+                <button id="cleanup-stale-button" class="secondary-button toolbar-button" type="button" disabled>
+                  清理脏索引
+                </button>
+              </div>
             </div>
           </section>
 
@@ -1261,6 +1420,9 @@ dd {
                 <button id="select-page-button" class="secondary-button small" type="button" disabled>
                   全选当前页
                 </button>
+                <button id="delete-selected-button" class="danger-button small" type="button" disabled hidden>
+                  删除选中
+                </button>
                 <label class="inline-field">
                   <span id="page-size-label">每页显示</span>
                   <select id="page-size-select">
@@ -1296,12 +1458,14 @@ dd {
               <p id="detail-caption" class="section-description">未选择会话</p>
             </div>
             <div class="detail-actions">
-              <button id="download-current-button" class="secondary-button small" type="button" disabled>
-                下载
-              </button>
-              <button id="delete-current-button" class="danger-button small" type="button" disabled>
-                删除
-              </button>
+              <div class="detail-action-row">
+                <button id="download-current-button" class="secondary-button small" type="button" disabled>
+                  下载
+                </button>
+                <button id="delete-current-button" class="danger-button small" type="button" disabled>
+                  删除
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1341,11 +1505,11 @@ dd {
       </main>
     </div>
 
-    <div id="confirm-modal" class="modal" hidden>
-      <div class="modal-backdrop"></div>
+    <div id="confirm-modal" class="modal" hidden data-variant="danger">
+      <div id="modal-backdrop" class="modal-backdrop"></div>
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-header">
-          <div class="modal-icon" aria-hidden="true">
+          <div id="modal-icon" class="modal-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M12 8v5"></path>
               <path d="M12 16.5h.01"></path>
@@ -1360,11 +1524,11 @@ dd {
         <div class="modal-summary">
           <div id="modal-summary-head" class="modal-summary-head">即将执行</div>
           <div>
-            <p id="modal-description" class="section-description"></p>
+            <div id="modal-description" class="section-description"></div>
           </div>
         </div>
         <div class="modal-warning-box">
-          <p id="modal-warning" class="body-copy"></p>
+          <div id="modal-warning" class="body-copy"></div>
         </div>
         <div class="modal-actions">
           <button id="modal-cancel-button" class="secondary-button" type="button">取消</button>
@@ -1492,9 +1656,11 @@ const I18N = {
     buttons: {
       repository: "查看仓库",
       pickDirectory: "选择目录",
+      continuePickDirectory: "继续选择目录",
       reload: "重新扫描",
       deleteSelected: "删除选中",
       deleteAll: "删除全部",
+      cleanupStale: "清理脏索引",
       selectPage: "全选当前页",
       unselectPage: "取消全选",
       prevPage: "上一页",
@@ -1504,6 +1670,7 @@ const I18N = {
       delete: "删除",
       cancel: "取消",
       confirmDelete: "确认删除",
+      confirmCleanup: "确认清理",
       localeIndicator: "中",
     },
     badge: {
@@ -1537,13 +1704,28 @@ const I18N = {
       titleAll: "确认删除全部会话",
       titleSingle: "确认删除当前会话",
       titleSelected: "确认删除选中会话",
+      titleCleanupStale: "确认清理脏索引",
+      titleDirectoryHelp: "请选择 .codex 目录",
       subtitle: "危险操作",
+      subtitleDirectoryHelp: "目录选择提示",
       summaryHead: "即将执行",
-      warningAll: "该操作会移除当前目录下全部可删除的会话文件. 倒计时结束后才允许确认.",
-      warningDelete: "删除后无法恢复. 倒计时结束后才允许确认.",
+      summaryHeadDirectoryHelp: "常见路径",
+      warningAll: "高风险: 该操作会移除当前目录下全部可删除的会话文件. 请先关闭 Codex, 再继续. 删除后无法恢复, 倒计时结束后才允许确认.",
+      warningDelete: "高风险: 请先关闭 Codex, 再执行删除. 删除后无法恢复, 倒计时结束后才允许确认.",
+      warningCleanupStale: "该操作会改写 session_index.jsonl 和 history.jsonl, 移除失效索引记录. 倒计时结束后才允许确认.",
+      pathMacos: "macOS",
+      pathWindows: "Windows",
+      pathLinux: "Linux",
+      pathMacosValue: "~/.codex",
+      pathWindowsValue: "%USERPROFILE%\\\\.codex",
+      pathLinuxValue: "~/.codex",
+      pathContains:
+        "目录内应包含: sessions/, session_index.jsonl, history.jsonl",
       descAll: "即将删除 {{count}} 个会话文件, 共 {{size}}.",
       descSingle: "即将删除当前会话「{{title}}」, 共 {{size}}.",
       descSelected: "即将删除 {{count}} 个已选会话, 共 {{size}}.",
+      descCleanupStale: "即将清理 {{count}} 条脏索引记录, 并同步移除对应历史摘要.",
+      descDirectoryHelp: "继续后会打开系统目录选择器. 请选择包含 sessions 目录的 .codex 根目录.",
       confirmCountdown: "{{seconds}}s 后可确认",
     },
     pagination: {
@@ -1623,9 +1805,11 @@ const I18N = {
     buttons: {
       repository: "View repository",
       pickDirectory: "Pick directory",
+      continuePickDirectory: "Continue to picker",
       reload: "Rescan",
       deleteSelected: "Delete selected",
       deleteAll: "Delete all",
+      cleanupStale: "Clean stale",
       selectPage: "Select page",
       unselectPage: "Unselect page",
       prevPage: "Prev",
@@ -1635,6 +1819,7 @@ const I18N = {
       delete: "Delete",
       cancel: "Cancel",
       confirmDelete: "Confirm delete",
+      confirmCleanup: "Confirm cleanup",
       localeIndicator: "EN",
     },
     badge: {
@@ -1668,13 +1853,29 @@ const I18N = {
       titleAll: "Confirm delete all sessions",
       titleSingle: "Confirm delete current session",
       titleSelected: "Confirm delete selected sessions",
+      titleCleanupStale: "Confirm cleanup stale indexes",
+      titleDirectoryHelp: "Select your .codex directory",
       subtitle: "Destructive action",
+      subtitleDirectoryHelp: "Directory picker guide",
       summaryHead: "Pending action",
-      warningAll: "This will remove every deletable session file in the current directory. Confirmation is locked until the countdown ends.",
-      warningDelete: "This action cannot be undone. Confirmation is locked until the countdown ends.",
+      summaryHeadDirectoryHelp: "Common paths",
+      warningAll: "High risk: this will remove every deletable session file in the current directory. Close Codex before continuing. This action cannot be undone, and confirmation is locked until the countdown ends.",
+      warningDelete: "High risk: close Codex before deleting. This action cannot be undone, and confirmation is locked until the countdown ends.",
+      warningCleanupStale: "This will rewrite session_index.jsonl and history.jsonl to remove stale index records. Confirmation is locked until the countdown ends.",
+      pathMacos: "macOS",
+      pathWindows: "Windows",
+      pathLinux: "Linux",
+      pathMacosValue: "~/.codex",
+      pathWindowsValue: "%USERPROFILE%\\\\.codex",
+      pathLinuxValue: "~/.codex",
+      pathContains:
+        "The directory should contain: sessions/, session_index.jsonl, history.jsonl",
       descAll: "You are about to delete {{count}} session files, total {{size}}.",
       descSingle: "You are about to delete the current session \"{{title}}\", total {{size}}.",
       descSelected: "You are about to delete {{count}} selected sessions, total {{size}}.",
+      descCleanupStale: "You are about to remove {{count}} stale index records and their history summaries.",
+      descDirectoryHelp:
+        "Continuing will open the system directory picker. Choose the .codex root directory that contains the sessions folder.",
       confirmCountdown: "{{seconds}}s to confirm",
     },
     pagination: {
@@ -1723,7 +1924,8 @@ const state = {
   pageSize: 10,
   locale: "zh-CN",
   themeMode: "light",
-  pendingDeleteMode: null,
+  modalKind: null,
+  pendingActionMode: null,
   countdownRemaining: 0,
   countdownTimer: null,
   previewRequestId: 0,
@@ -1734,6 +1936,7 @@ const elements = {
   reloadButton: document.querySelector("#reload-button"),
   deleteSelectedButton: document.querySelector("#delete-selected-button"),
   deleteAllButton: document.querySelector("#delete-all-button"),
+  cleanupStaleButton: document.querySelector("#cleanup-stale-button"),
   searchInput: document.querySelector("#search-input"),
   ageFilter: document.querySelector("#age-filter"),
   sortSelect: document.querySelector("#sort-select"),
@@ -1769,7 +1972,11 @@ const elements = {
   localeToggleButton: document.querySelector("#locale-toggle-button"),
   themeToggleButton: document.querySelector("#theme-toggle-button"),
   modal: document.querySelector("#confirm-modal"),
+  modalBackdrop: document.querySelector("#modal-backdrop"),
+  modalIcon: document.querySelector("#modal-icon"),
   modalTitle: document.querySelector("#modal-title"),
+  modalSubtitle: document.querySelector("#modal-subtitle"),
+  modalSummaryHead: document.querySelector("#modal-summary-head"),
   modalDescription: document.querySelector("#modal-description"),
   modalWarning: document.querySelector("#modal-warning"),
   modalCancelButton: document.querySelector("#modal-cancel-button"),
@@ -1785,10 +1992,11 @@ function initialize() {
   elements.pageSizeSelect.value = String(state.pageSize);
   elements.repoLink.href = REPOSITORY_URL;
 
-  elements.pickDirectoryButton.addEventListener("click", handlePickDirectory);
+  elements.pickDirectoryButton.addEventListener("click", openDirectoryHelpDialog);
   elements.reloadButton.addEventListener("click", () => scanSessions().catch(handleError));
-  elements.deleteSelectedButton.addEventListener("click", () => openDeleteDialog("selected"));
-  elements.deleteAllButton.addEventListener("click", () => openDeleteDialog("all"));
+  elements.deleteSelectedButton.addEventListener("click", () => openConfirmDialog("selected"));
+  elements.deleteAllButton.addEventListener("click", () => openConfirmDialog("all"));
+  elements.cleanupStaleButton.addEventListener("click", () => openConfirmDialog("stale"));
   elements.searchInput.addEventListener("input", handleFilterChange);
   elements.ageFilter.addEventListener("change", handleFilterChange);
   elements.sortSelect.addEventListener("change", handleFilterChange);
@@ -1798,9 +2006,10 @@ function initialize() {
   elements.prevPageButton.addEventListener("click", () => changePage(-1));
   elements.nextPageButton.addEventListener("click", () => changePage(1));
   elements.downloadCurrentButton.addEventListener("click", () => downloadCurrentSession().catch(handleError));
-  elements.deleteCurrentButton.addEventListener("click", () => openDeleteDialog("single"));
-  elements.modalCancelButton.addEventListener("click", closeDeleteDialog);
-  elements.modalConfirmButton.addEventListener("click", () => confirmDelete().catch(handleError));
+  elements.deleteCurrentButton.addEventListener("click", () => openConfirmDialog("single"));
+  elements.modalBackdrop.addEventListener("click", handleModalDismiss);
+  elements.modalCancelButton.addEventListener("click", handleModalDismiss);
+  elements.modalConfirmButton.addEventListener("click", () => handleModalConfirm().catch(handleError));
   elements.localeToggleButton.addEventListener("click", cycleLocale);
   elements.themeToggleButton.addEventListener("click", cycleTheme);
 
@@ -1811,7 +2020,7 @@ function initialize() {
   updateStatus();
 }
 
-async function handlePickDirectory() {
+async function pickDirectoryFromSystem() {
   try {
     const rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
     state.rootHandle = rootHandle;
@@ -2507,7 +2716,9 @@ function updateStatus() {
   elements.prevPageButton.disabled = state.currentPage <= 1;
   elements.nextPageButton.disabled = !totalPages || state.currentPage >= totalPages;
   elements.deleteSelectedButton.disabled = !state.selectedIds.size;
+  elements.deleteSelectedButton.hidden = !state.selectedIds.size;
   elements.deleteAllButton.disabled = !deletableCount;
+  elements.cleanupStaleButton.disabled = !staleCount;
   elements.selectPageButton.disabled = !getPagedSelectableSessions().length;
   elements.selectPageButton.textContent = areAllPagedSessionsSelected()
     ? t("buttons.unselectPage")
@@ -2558,33 +2769,79 @@ function handleSelectCurrentPage() {
   updateStatus();
 }
 
-function openDeleteDialog(mode) {
-  const targets = getDeletionTargets(mode);
+function openDirectoryHelpDialog() {
+  state.modalKind = "directory-help";
+  state.pendingActionMode = null;
+  state.countdownRemaining = 0;
+  elements.modal.hidden = false;
+  refreshModalDialog();
+  clearCountdown();
+  elements.modalConfirmButton.disabled = false;
+}
+
+function openConfirmDialog(mode) {
+  const targets = getActionTargets(mode);
 
   if (!targets.length) {
     return;
   }
 
-  state.pendingDeleteMode = mode;
+  state.modalKind = "action";
+  state.pendingActionMode = mode;
   elements.modal.hidden = false;
-  refreshDeleteDialogText();
-  elements.modalConfirmButton.textContent = t("buttons.confirmDelete");
+  refreshModalDialog();
 
   resetCountdown(5);
 }
 
-function refreshDeleteDialogText() {
-  const targets = getDeletionTargets(state.pendingDeleteMode);
-  elements.modalTitle.textContent = getDeleteDialogTitle(state.pendingDeleteMode);
-  elements.modalDescription.textContent = getDeleteDialogDescription(state.pendingDeleteMode, targets);
-  elements.modalWarning.textContent =
-    state.pendingDeleteMode === "all" ? t("modal.warningAll") : t("modal.warningDelete");
+function refreshModalDialog() {
+  if (state.modalKind === "directory-help") {
+    refreshDirectoryHelpDialog();
+    return;
+  }
+
+  refreshDeleteDialogText();
 }
 
-function closeDeleteDialog() {
+function refreshDeleteDialogText() {
+  const targets = getActionTargets(state.pendingActionMode);
+  elements.modal.dataset.variant = "danger";
+  elements.modalIcon.innerHTML = getModalIconMarkup("action");
+  elements.modalTitle.textContent = getDialogTitle(state.pendingActionMode);
+  elements.modalSubtitle.textContent = t("modal.subtitle");
+  elements.modalSummaryHead.textContent = t("modal.summaryHead");
+  elements.modalDescription.textContent = getDialogDescription(state.pendingActionMode, targets);
+  elements.modalWarning.textContent = getDialogWarning(state.pendingActionMode);
+  elements.modalCancelButton.textContent = t("buttons.cancel");
+  elements.modalConfirmButton.className = "danger-button small";
+  elements.modalConfirmButton.textContent = getConfirmActionText(state.pendingActionMode);
+}
+
+function refreshDirectoryHelpDialog() {
+  elements.modal.dataset.variant = "info";
+  elements.modalIcon.innerHTML = getModalIconMarkup("directory-help");
+  elements.modalTitle.textContent = t("modal.titleDirectoryHelp");
+  elements.modalSubtitle.textContent = t("modal.subtitleDirectoryHelp");
+  elements.modalSummaryHead.textContent = t("modal.summaryHeadDirectoryHelp");
+  elements.modalDescription.textContent = t("modal.descDirectoryHelp");
+  elements.modalWarning.innerHTML = getDirectoryHelpMarkup();
+  elements.modalCancelButton.textContent = t("buttons.cancel");
+  elements.modalConfirmButton.className = "primary-button";
+  elements.modalConfirmButton.textContent = t("buttons.continuePickDirectory");
+}
+
+function closeModalDialog() {
   clearCountdown();
+  state.countdownRemaining = 0;
   elements.modal.hidden = true;
-  state.pendingDeleteMode = null;
+  elements.modal.dataset.variant = "danger";
+  elements.modalIcon.innerHTML = getModalIconMarkup("action");
+  elements.modalDescription.textContent = "";
+  elements.modalWarning.textContent = "";
+  elements.modalCancelButton.textContent = t("buttons.cancel");
+  elements.modalConfirmButton.className = "danger-button small";
+  state.pendingActionMode = null;
+  state.modalKind = null;
   elements.modalConfirmButton.disabled = true;
   elements.modalConfirmButton.textContent = t("buttons.confirmDelete");
 }
@@ -2607,7 +2864,7 @@ function resetCountdown(seconds) {
     if (state.countdownRemaining <= 0) {
       clearCountdown();
       elements.modalConfirmButton.disabled = false;
-      elements.modalConfirmButton.textContent = t("buttons.confirmDelete");
+      elements.modalConfirmButton.textContent = getConfirmActionText(state.pendingActionMode);
     }
   }, 1000);
 }
@@ -2618,7 +2875,7 @@ function refreshCountdownButton() {
     return;
   }
 
-  elements.modalConfirmButton.textContent = t("buttons.confirmDelete");
+  elements.modalConfirmButton.textContent = getConfirmActionText(state.pendingActionMode);
 }
 
 function clearCountdown() {
@@ -2628,11 +2885,32 @@ function clearCountdown() {
   }
 }
 
-async function confirmDelete() {
-  const targets = getDeletionTargets(state.pendingDeleteMode);
+function handleModalDismiss() {
+  closeModalDialog();
+}
+
+async function handleModalConfirm() {
+  if (state.modalKind === "directory-help") {
+    closeModalDialog();
+    await pickDirectoryFromSystem();
+    return;
+  }
+
+  await confirmPendingAction();
+}
+
+async function confirmPendingAction() {
+  const targets = getActionTargets(state.pendingActionMode);
 
   if (!targets.length) {
-    closeDeleteDialog();
+    closeModalDialog();
+    return;
+  }
+
+  if (state.pendingActionMode === "stale") {
+    await cleanupStaleIndexes(targets);
+    closeModalDialog();
+    await scanSessions();
     return;
   }
 
@@ -2642,11 +2920,15 @@ async function confirmDelete() {
     state.timelineCache.delete(session.id);
   }
 
-  closeDeleteDialog();
+  closeModalDialog();
   await scanSessions();
 }
 
-function getDeletionTargets(mode) {
+function getActionTargets(mode) {
+  if (mode === "stale") {
+    return getStaleSessions();
+  }
+
   if (mode === "single") {
     const active = getActiveSession();
     return active && isSessionDeletable(active) ? [active] : [];
@@ -2659,7 +2941,11 @@ function getDeletionTargets(mode) {
   return state.sessions.filter((session) => state.selectedIds.has(session.id) && isSessionDeletable(session));
 }
 
-function getDeleteDialogTitle(mode) {
+function getDialogTitle(mode) {
+  if (mode === "stale") {
+    return t("modal.titleCleanupStale");
+  }
+
   if (mode === "all") {
     return t("modal.titleAll");
   }
@@ -2671,7 +2957,11 @@ function getDeleteDialogTitle(mode) {
   return t("modal.titleSelected");
 }
 
-function getDeleteDialogDescription(mode, targets) {
+function getDialogDescription(mode, targets) {
+  if (mode === "stale") {
+    return t("modal.descCleanupStale", { count: targets.length });
+  }
+
   if (mode === "all") {
     return t("modal.descAll", { count: targets.length, size: formatBytes(sumSizes(targets)) });
   }
@@ -2685,6 +2975,111 @@ function getDeleteDialogDescription(mode, targets) {
   }
 
   return t("modal.descSelected", { count: targets.length, size: formatBytes(sumSizes(targets)) });
+}
+
+function getDialogWarning(mode) {
+  if (mode === "stale") {
+    return t("modal.warningCleanupStale");
+  }
+
+  return mode === "all" ? t("modal.warningAll") : t("modal.warningDelete");
+}
+
+function getConfirmActionText(mode) {
+  return mode === "stale" ? t("buttons.confirmCleanup") : t("buttons.confirmDelete");
+}
+
+function getModalIconMarkup(kind) {
+  if (kind === "directory-help") {
+    return `
+      <svg viewBox="0 0 24 24">
+        <path d="M9.6 9.3a2.4 2.4 0 1 1 4.15 1.65c-.73.72-1.75 1.28-1.75 2.55v.5"></path>
+        <path d="M12 16.5v.01"></path>
+        <circle cx="12" cy="12" r="9"></circle>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24">
+      <path d="M12 8v5"></path>
+      <path d="M12 16.5h.01"></path>
+      <path d="M10.3 3.8 2.9 17a2 2 0 0 0 1.8 3h14.6a2 2 0 0 0 1.8-3L13.7 3.8a2 2 0 0 0-3.4 0Z"></path>
+    </svg>
+  `;
+}
+
+function getDirectoryHelpMarkup() {
+  const items = [
+    { label: t("modal.pathMacos"), value: t("modal.pathMacosValue") },
+    { label: t("modal.pathWindows"), value: t("modal.pathWindowsValue") },
+    { label: t("modal.pathLinux"), value: t("modal.pathLinuxValue") },
+  ];
+
+  const cards = items
+    .map(
+      (item) => `
+        <article class="modal-path-item">
+          <div class="modal-path-title">${escapeHtml(item.label)}</div>
+          <div class="modal-path-value">${escapeHtml(item.value)}</div>
+        </article>
+      `,
+    )
+    .join("");
+
+  return `
+    <div class="modal-path-grid">${cards}</div>
+    <p class="modal-directory-footnote">${escapeHtml(t("modal.pathContains"))}</p>
+  `;
+}
+
+function getStaleSessions() {
+  return state.sessions.filter((session) => session.stale);
+}
+
+async function cleanupStaleIndexes(sessions) {
+  const staleIds = new Set(sessions.map((session) => session.id));
+
+  if (!staleIds.size) {
+    return;
+  }
+
+  await filterJsonLinesFile("session_index.jsonl", (record) => !record?.id || !staleIds.has(record.id));
+  await filterJsonLinesFile("history.jsonl", (record) => !record?.session_id || !staleIds.has(record.session_id));
+}
+
+async function filterJsonLinesFile(fileName, shouldKeepRecord) {
+  ensureRootSelected();
+
+  try {
+    const fileHandle = await state.rootHandle.getFileHandle(fileName);
+    const text = await (await fileHandle.getFile()).text();
+    const lines = [];
+
+    for (const rawLine of text.split(/\r?\n/)) {
+      const trimmed = rawLine.trim();
+
+      if (!trimmed) {
+        continue;
+      }
+
+      const parsed = safeJsonParse(trimmed);
+
+      if (!parsed || shouldKeepRecord(parsed)) {
+        lines.push(rawLine);
+      }
+    }
+
+    const writable = await fileHandle.createWritable();
+    await writable.write(lines.length ? `${lines.join("\n")}\n` : "");
+    await writable.close();
+  } catch (error) {
+    if (error?.name === "NotFoundError") {
+      return;
+    }
+
+    throw error;
+  }
 }
 
 function getActiveSession() {
@@ -2760,12 +3155,11 @@ function applyLocale(locale) {
   setText(document.querySelector("#page-size-label"), t("labels.pageSize"));
   setText(document.querySelector("#detail-section-title"), t("section.detail"));
   setText(document.querySelector("#detail-overview-default-label"), t("labels.sessionId"));
-  setText(document.querySelector("#modal-subtitle"), t("modal.subtitle"));
-  setText(document.querySelector("#modal-summary-head"), t("modal.summaryHead"));
   setText(elements.pickDirectoryButton, t("buttons.pickDirectory"));
   setText(elements.reloadButton, t("buttons.reload"));
   setText(elements.deleteSelectedButton, t("buttons.deleteSelected"));
   setText(elements.deleteAllButton, t("buttons.deleteAll"));
+  setText(elements.cleanupStaleButton, t("buttons.cleanupStale"));
   setText(elements.prevPageButton, t("buttons.prevPage"));
   setText(elements.nextPageButton, t("buttons.nextPage"));
   setText(elements.downloadCurrentButton, t("buttons.download"));
@@ -2779,9 +3173,12 @@ function applyLocale(locale) {
   elements.themeToggleButton.setAttribute("aria-label", getThemeToggleLabel(state.themeMode));
   elements.themeToggleButton.setAttribute("title", getThemeToggleLabel(state.themeMode));
 
-  if (state.pendingDeleteMode && !elements.modal.hidden) {
-    refreshDeleteDialogText();
-    refreshCountdownButton();
+  if (state.modalKind && !elements.modal.hidden) {
+    refreshModalDialog();
+
+    if (state.modalKind === "action" && state.countdownRemaining > 0) {
+      refreshCountdownButton();
+    }
   }
 }
 
@@ -3007,7 +3404,7 @@ function escapeHtml(value) {
 
 function handleError(error) {
   console.error(error);
-  closeDeleteDialog();
+  closeModalDialog();
   state.previewRequestId += 1;
   const message = error?.message || t("errors.unknown");
   elements.statusBadge.textContent = t("badge.error");
