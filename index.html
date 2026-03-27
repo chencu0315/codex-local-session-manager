@@ -18,7 +18,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Codex 本地会话管理</title>
+    <title>Codex 本地会话管理工具</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -159,16 +159,30 @@ p {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   padding: 10px 14px;
+  position: relative;
+  justify-items: center;
 }
 
 .hero-main,
 .hero-side {
   display: grid;
   gap: 4px;
+}
+
+.hero-main {
+  justify-items: center;
+  text-align: center;
+  max-width: min(100%, 720px);
+}
+
+.hero-side {
+  position: absolute;
+  top: 10px;
+  right: 14px;
 }
 
 .hero-side-top {
@@ -305,6 +319,10 @@ h1 {
   color: var(--text);
 }
 
+.repo-link {
+  text-decoration: none;
+}
+
 .secondary-button.small,
 .danger-button.small {
   padding: 8px 12px;
@@ -360,6 +378,13 @@ button:disabled {
   width: 18px;
   height: 18px;
   display: block;
+}
+
+.repo-icon {
+  width: 17px;
+  height: 17px;
+  display: block;
+  fill: currentColor;
 }
 
 .theme-icon svg {
@@ -974,6 +999,17 @@ dd {
 @media (max-width: 1240px) {
   .hero {
     grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .hero-main {
+    justify-items: start;
+    text-align: left;
+    max-width: none;
+  }
+
+  .hero-side {
+    position: static;
   }
 
   .top-panels {
@@ -1076,15 +1112,28 @@ dd {
     <div class="shell">
       <header class="surface hero">
         <div class="hero-main">
-          <h1 id="hero-title">Codex 本地会话管理</h1>
+          <h1 id="hero-title">Codex 本地会话管理工具</h1>
           <p id="hero-description" class="hero-description">
-            本地管理 Ccodex 历史会话. 目录授权后即可分页浏览, 筛选, 预览和清理.
+            数据仅在浏览器本地处理, 不会发送到任何第三方或后端
           </p>
           <p id="support-hint" class="support-hint"></p>
         </div>
 
         <div class="hero-side">
           <div class="hero-side-top">
+            <a
+              id="repo-link"
+              class="secondary-button icon-button repo-link"
+              href="https://github.com/zhengshuyun-com/codex-local-session-manager"
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label="查看仓库"
+              title="查看仓库"
+            >
+              <svg class="repo-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.11.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.35.95.1-.74.4-1.25.72-1.53-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.17a10.9 10.9 0 0 1 5.77 0c2.2-1.48 3.17-1.17 3.17-1.17.62 1.59.23 2.76.11 3.05.74.8 1.18 1.82 1.18 3.07 0 4.42-2.69 5.39-5.25 5.67.41.36.77 1.07.77 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"></path>
+              </svg>
+            </a>
             <button
               id="locale-toggle-button"
               class="secondary-button locale-button"
@@ -1391,14 +1440,15 @@ dd {
     <script type="module">
 const THEME_STORAGE_KEY = "codex-session-console-theme";
 const LOCALE_STORAGE_KEY = "codex-session-console-locale";
+const REPOSITORY_URL = "https://github.com/zhengshuyun-com/codex-local-session-manager";
 const TOOL_OUTPUT_LIMIT = 600;
 
 const I18N = {
   "zh-CN": {
     meta: {
-      title: "Codex 本地会话管理",
-      heroTitle: "Codex 本地会话管理",
-      heroDescription: "本地管理 Ccodex 历史会话. 目录授权后即可分页浏览, 筛选, 预览和清理.",
+      title: "Codex 本地会话管理工具",
+      heroTitle: "Codex 本地会话管理工具",
+      heroDescription: "数据仅在浏览器本地处理, 不会发送到任何第三方或后端",
     },
     support: {
       unsupported: "请使用最新版 Chrome 或 Edge.",
@@ -1440,6 +1490,7 @@ const I18N = {
       titleAsc: "标题 A-Z",
     },
     buttons: {
+      repository: "查看仓库",
       pickDirectory: "选择目录",
       reload: "重新扫描",
       deleteSelected: "删除选中",
@@ -1528,7 +1579,7 @@ const I18N = {
     meta: {
       title: "Codex Local Session Manager",
       heroTitle: "Codex Local Session Manager",
-      heroDescription: "Manage local Codex session history. Authorize a directory to browse, filter, preview, and clean sessions with pagination.",
+      heroDescription: "Data is processed locally in the browser and is not sent to any third party or backend.",
     },
     support: {
       unsupported: "Please use the latest Chrome or Edge.",
@@ -1570,6 +1621,7 @@ const I18N = {
       titleAsc: "Title A-Z",
     },
     buttons: {
+      repository: "View repository",
       pickDirectory: "Pick directory",
       reload: "Rescan",
       deleteSelected: "Delete selected",
@@ -1712,6 +1764,7 @@ const elements = {
   detailMessageCount: document.querySelector("#detail-message-count"),
   downloadCurrentButton: document.querySelector("#download-current-button"),
   deleteCurrentButton: document.querySelector("#delete-current-button"),
+  repoLink: document.querySelector("#repo-link"),
   template: queryAny(["#session-item-template", "#group-item-template"]),
   localeToggleButton: document.querySelector("#locale-toggle-button"),
   themeToggleButton: document.querySelector("#theme-toggle-button"),
@@ -1730,6 +1783,7 @@ function initialize() {
 
   elements.pickDirectoryButton.disabled = !isSupported;
   elements.pageSizeSelect.value = String(state.pageSize);
+  elements.repoLink.href = REPOSITORY_URL;
 
   elements.pickDirectoryButton.addEventListener("click", handlePickDirectory);
   elements.reloadButton.addEventListener("click", () => scanSessions().catch(handleError));
@@ -2716,6 +2770,8 @@ function applyLocale(locale) {
   setText(elements.nextPageButton, t("buttons.nextPage"));
   setText(elements.downloadCurrentButton, t("buttons.download"));
   setText(elements.modalCancelButton, t("buttons.cancel"));
+  elements.repoLink.setAttribute("aria-label", t("buttons.repository"));
+  elements.repoLink.setAttribute("title", t("buttons.repository"));
 
   elements.localeToggleButton.textContent = t("buttons.localeIndicator");
   elements.localeToggleButton.setAttribute("aria-label", t("locale.switchTo"));
