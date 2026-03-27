@@ -20,7 +20,7 @@
 
 ## 在线使用
 
-[https://zhengshuyun-com.github.io/codex-local-session-manager](https://zhengshuyun-com.github.io/codex-local-session-manager)
+<a href="https://zhengshuyun-com.github.io/codex-local-session-manager" target="_blank" rel="noopener noreferrer">https://zhengshuyun-com.github.io/codex-local-session-manager</a>
 
 数据仅在浏览器本地处理, 不会发送到任何第三方或后端.
 

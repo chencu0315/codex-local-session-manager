@@ -20,7 +20,7 @@ A local web tool for browsing and cleaning Codex session history.
 
 ## Open Online
 
-[https://zhengshuyun-com.github.io/codex-local-session-manager](https://zhengshuyun-com.github.io/codex-local-session-manager)
+<a href="https://zhengshuyun-com.github.io/codex-local-session-manager" target="_blank" rel="noopener noreferrer">https://zhengshuyun-com.github.io/codex-local-session-manager</a>
 
 Data is processed locally in the browser and is not sent to any third party or backend.
 
