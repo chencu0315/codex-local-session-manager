@@ -24,6 +24,10 @@ A local web tool for browsing and cleaning Codex session history.
 
 Data is processed locally in the browser and is not sent to any third party or backend.
 
+## Friend Links
+
+- [LINUX DO](https://linux.do) - 新的理想型社区
+
 ## License
 
 Apache License 2.0. See [LICENSE](./LICENSE).

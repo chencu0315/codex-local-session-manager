@@ -24,6 +24,10 @@
 
 数据仅在浏览器本地处理, 不会发送到任何第三方或后端.
 
+## 友链
+
+- [LINUX DO](https://linux.do) - 新的理想型社区
+
 ## 开源协议
 
 Apache License 2.0. 参见 [LICENSE](./LICENSE).
