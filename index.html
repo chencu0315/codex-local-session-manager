@@ -2672,28 +2672,150 @@ async function getSessionTimeline(session) {
       continue;
     }
 
-    const extractedItems = extractTimelineItems(parsed);
+    if (parsed.type === "response_item") {
+      const extractedItems = extractResponseItems(parsed).map((item) => ({
+        ...item,
+        source: "response",
+      }));
 
-    if (extractedItems.length) {
-      items.push(...extractedItems);
+      if (extractedItems.length) {
+        items.push(...extractedItems);
+      }
+
+      continue;
+    }
+
+    if (parsed.type === "event_msg") {
+      const extractedItems = extractEventMessageItems(parsed).map((item) => ({
+        ...item,
+        source: "event",
+      }));
+
+      if (extractedItems.length) {
+        items.push(...extractedItems);
+      }
     }
   }
 
-  const timeline = items.length ? items : buildFallbackTimeline(session);
+  const timeline = items.length ? dedupePreviewTimeline(items).map(stripTimelineMeta) : buildFallbackTimeline(session);
   state.timelineCache.set(session.id, timeline);
   return timeline;
 }
 
-function extractTimelineItems(record) {
-  if (record.type === "event_msg") {
-    return extractEventMessageItems(record);
+function dedupePreviewTimeline(items) {
+  const pendingByKey = new Map();
+  const suppressedIndexes = new Set();
+
+  items.forEach((item, index) => {
+    const key = getTimelineDedupeKey(item);
+
+    if (!key) {
+      return;
+    }
+
+    const queues = getTimelineDedupeQueues(pendingByKey, key);
+    const oppositeSource = item.source === "event" ? "response" : "event";
+    const oppositeQueue = queues[oppositeSource];
+    const matchQueueIndex = oppositeQueue.findIndex((candidateIndex) =>
+      canDedupeTimelinePair(items[candidateIndex], item)
+    );
+
+    if (matchQueueIndex === -1) {
+      queues[item.source].push(index);
+      return;
+    }
+
+    const matchedIndex = oppositeQueue.splice(matchQueueIndex, 1)[0];
+
+    if (item.source === "response") {
+      suppressedIndexes.add(matchedIndex);
+      return;
+    }
+
+    suppressedIndexes.add(index);
+  });
+
+  return items.filter((_, index) => !suppressedIndexes.has(index));
+}
+
+function getTimelineDedupeKey(item) {
+  if (item.source !== "event" && item.source !== "response") {
+    return "";
   }
 
-  if (record.type === "response_item") {
-    return extractResponseItems(record);
+  if (item.kind !== "user" && item.kind !== "assistant") {
+    return "";
   }
 
-  return [];
+  const normalizedBody = normalizeTimelineBody(item.body);
+
+  if (!normalizedBody) {
+    return "";
+  }
+
+  return `${item.kind}\u0000${normalizedBody}`;
+}
+
+function getTimelineDedupeQueues(pendingByKey, key) {
+  if (!pendingByKey.has(key)) {
+    pendingByKey.set(key, {
+      event: [],
+      response: [],
+    });
+  }
+
+  return pendingByKey.get(key);
+}
+
+function canDedupeTimelinePair(left, right) {
+  if (left.source === right.source) {
+    return false;
+  }
+
+  if (left.kind !== right.kind) {
+    return false;
+  }
+
+  if (normalizeTimelineBody(left.body) !== normalizeTimelineBody(right.body)) {
+    return false;
+  }
+
+  return hasCloseTimelineTimestamps(left.timestamp, right.timestamp);
+}
+
+function normalizeTimelineBody(body) {
+  return String(body || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function hasCloseTimelineTimestamps(left, right) {
+  const leftTime = parseTimelineTimestamp(left);
+  const rightTime = parseTimelineTimestamp(right);
+
+  if (leftTime === null || rightTime === null) {
+    return false;
+  }
+
+  return Math.abs(leftTime - rightTime) <= 2000;
+}
+
+function parseTimelineTimestamp(value) {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = new Date(value).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+}
+
+function stripTimelineMeta(item) {
+  return {
+    kind: item.kind,
+    roleLabel: item.roleLabel,
+    timestamp: item.timestamp,
+    body: item.body,
+  };
 }
 
 function extractEventMessageItems(record) {
