@@ -1,6 +1,6 @@
 # Codex Local Session Manager
 
-[English](./README.md) | [Simplified Chinese](./README.zh-CN.md)
+[English](./README.md) | [简体中文](./README.zh-CN.md)
 
 A local web tool for browsing and cleaning Codex session history.
 
