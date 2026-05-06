@@ -3878,17 +3878,22 @@ function finalizeTimeline(items) {
 
 function getOutlineTitle(body) {
   const raw = String(body || "");
-  const lines = raw.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+
+  let cleaned = stripInjectedPromptMetadata(raw);
+  cleaned = cleaned.replace(/<([a-zA-Z][\w:-]*)\b[^>]*>[\s\S]*?<\/\1>/g, " ");
+  cleaned = cleaned.replace(/<\/?[a-zA-Z][\w:-]*[^>]*>/g, " ");
+
+  const lines = cleaned.split(/\n+/).map((line) => line.trim()).filter(Boolean);
 
   const skipPatterns = [
     /^Context from my IDE setup:?\s*$/i,
-    /^<\/?[a-zA-Z][\w:-]*[^>]*>\s*$/,
     /^My request for Codex:?\s*$/i,
     /^#{1,6}\s*My request for Codex:?\s*$/i,
+    /^\[\/?reminder\]\s*$/i,
+    /^---+\s*$/,
   ];
 
   const isSkippable = (line) => skipPatterns.some((re) => re.test(line));
-
   const firstReal = lines.find((line) => !isSkippable(line));
   return firstReal || lines[0] || raw;
 }
@@ -3915,21 +3920,12 @@ function sanitizeConversationBody(body, kind) {
 function stripInjectedPromptMetadata(text) {
   const leadingBlockPatterns = [
     /^# AGENTS\.md instructions for[^\n]*\n*/i,
-    /^<INSTRUCTIONS>[\s\S]*?<\/INSTRUCTIONS>\s*/i,
-    /^<environment_context>[\s\S]*?<\/environment_context>\s*/i,
-    /^<permissions instructions>[\s\S]*?<\/permissions instructions>\s*/i,
-    /^<collaboration_mode>[\s\S]*?<\/collaboration_mode>\s*/i,
-    /^<apps_instructions>[\s\S]*?<\/apps_instructions>\s*/i,
-    /^<skills_instructions>[\s\S]*?<\/skills_instructions>\s*/i,
-    /^<plugins_instructions>[\s\S]*?<\/plugins_instructions>\s*/i,
-    /^<user_instructions>[\s\S]*?<\/user_instructions>\s*/i,
-    /^<reminder>[\s\S]*?<\/reminder>\s*/i,
-    /^<system-reminder>[\s\S]*?<\/system-reminder>\s*/i,
-    /^<user-prompt-submit-hook>[\s\S]*?<\/user-prompt-submit-hook>\s*/i,
-    /^<ide_[a-zA-Z0-9_-]+>[\s\S]*?<\/ide_[a-zA-Z0-9_-]+>\s*/,
+    /^<([a-zA-Z][\w:-]*)\b[^>]*>[\s\S]*?<\/\1>\s*/,
     /^Context from my IDE setup:[ \t]*\n*/i,
-    /^#{1,6}\s*My request for Codex:\s*/i,
-    /^My request for Codex:\s*/i,
+    /^#{1,6}\s*My request for Codex:[ \t]*\n*/i,
+    /^My request for Codex:[ \t]*\n*/i,
+    /^\[reminder\][ \t]*\n*/i,
+    /^\[\/reminder\][ \t]*\n*/i,
   ];
 
   let cleaned = text.trim();
