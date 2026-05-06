@@ -1039,6 +1039,7 @@ dd {
 }
 
 #download-current-button,
+#copy-resume-button,
 #delete-current-button {
   flex-shrink: 0;
   min-width: 92px;
@@ -1842,6 +1843,9 @@ dd {
                 <button id="download-current-button" class="secondary-button small" type="button" disabled>
                   下载
                 </button>
+                <button id="copy-resume-button" class="secondary-button small" type="button" disabled>
+                  复制 resume
+                </button>
                 <button id="delete-current-button" class="danger-button small" type="button" disabled>
                   删除
                 </button>
@@ -2007,6 +2011,7 @@ const HANDLE_DB_VERSION = 1;
 const HANDLE_STORE_NAME = "handles";
 const ROOT_HANDLE_STORAGE_KEY = "root-directory";
 const REPOSITORY_URL = "https://github.com/zhengshuyun-com/codex-local-session-manager";
+const RESUME_COMMAND_RESET_DELAY = 1800;
 
 const I18N = {
   "zh-CN": {
@@ -2059,6 +2064,7 @@ const I18N = {
       repository: "查看仓库",
       pickDirectory: "选择目录",
       continuePickDirectory: "继续选择目录",
+      requestPermission: "授权扫描",
       reload: "重新扫描",
       deleteSelected: "删除选中",
       deleteAll: "删除全部",
@@ -2068,6 +2074,8 @@ const I18N = {
       prevPage: "上一页",
       nextPage: "下一页",
       download: "下载",
+      copyResume: "复制 resume",
+      resumeCopied: "已复制",
       deleteCurrent: "删除当前",
       delete: "删除",
       cancel: "取消",
@@ -2084,6 +2092,7 @@ const I18N = {
     statusText: {
       unselectedDir: "未选择目录",
       connectedCount: "{{count}} 条会话",
+      savedDirectoryNeedsPermission: "已记住 {{name}}, 点击“授权扫描”恢复访问.",
       currentSession: "当前会话",
     },
     list: {
@@ -2212,6 +2221,7 @@ const I18N = {
       repository: "View repository",
       pickDirectory: "Pick directory",
       continuePickDirectory: "Continue to picker",
+      requestPermission: "Authorize scan",
       reload: "Rescan",
       deleteSelected: "Delete selected",
       deleteAll: "Delete all",
@@ -2221,6 +2231,8 @@ const I18N = {
       prevPage: "Prev",
       nextPage: "Next",
       download: "Download",
+      copyResume: "Copy resume",
+      resumeCopied: "Copied",
       deleteCurrent: "Delete current",
       delete: "Delete",
       cancel: "Cancel",
@@ -2237,6 +2249,7 @@ const I18N = {
     statusText: {
       unselectedDir: "No directory selected",
       connectedCount: "{{count}} sessions",
+      savedDirectoryNeedsPermission: "{{name}} is remembered. Click \"Authorize scan\" to restore access.",
       currentSession: "Current session",
     },
     list: {
@@ -2340,6 +2353,9 @@ const state = {
   countdownTimer: null,
   previewRequestId: 0,
   activeHighlightTimer: null,
+  rememberedRootHandle: null,
+  isRestorePending: false,
+  resumeButtonResetTimer: null,
 };
 
 const elements = {
@@ -2380,6 +2396,7 @@ const elements = {
   commentaryToggle: document.querySelector("#commentary-toggle"),
   commentaryToggleLabel: document.querySelector("#commentary-toggle-label"),
   downloadCurrentButton: document.querySelector("#download-current-button"),
+  copyResumeButton: document.querySelector("#copy-resume-button"),
   deleteCurrentButton: document.querySelector("#delete-current-button"),
   repoLink: document.querySelector("#repo-link"),
   template: queryAny(["#session-item-template", "#group-item-template"]),
@@ -2406,7 +2423,14 @@ function initialize() {
   elements.pageSizeSelect.value = String(state.pageSize);
   elements.repoLink.href = REPOSITORY_URL;
 
-  elements.pickDirectoryButton.addEventListener("click", openDirectoryHelpDialog);
+  elements.pickDirectoryButton.addEventListener("click", () => {
+    if (state.isRestorePending) {
+      requestRememberedDirectoryAccess().catch(handleError);
+      return;
+    }
+
+    openDirectoryHelpDialog();
+  });
   elements.reloadButton.addEventListener("click", () => scanSessions().catch(handleError));
   elements.deleteSelectedButton.addEventListener("click", () => openConfirmDialog("selected"));
   elements.deleteAllButton.addEventListener("click", () => openConfirmDialog("all"));
@@ -2422,6 +2446,7 @@ function initialize() {
   elements.detailOutline.addEventListener("click", handleOutlineJump);
   elements.commentaryToggle.addEventListener("change", handleCommentaryToggleChange);
   elements.downloadCurrentButton.addEventListener("click", () => downloadCurrentSession().catch(handleError));
+  elements.copyResumeButton.addEventListener("click", () => copyResumeCommand().catch(handleError));
   elements.deleteCurrentButton.addEventListener("click", () => openConfirmDialog("single"));
   elements.modalBackdrop.addEventListener("click", handleModalDismiss);
   elements.modalCancelButton.addEventListener("click", handleModalDismiss);
@@ -2544,6 +2569,18 @@ async function queryHandlePermission(handle, mode = "read") {
   }
 }
 
+async function requestHandlePermission(handle, mode = "readwrite") {
+  if (!handle || typeof handle.requestPermission !== "function") {
+    return "prompt";
+  }
+
+  try {
+    return await handle.requestPermission({ mode });
+  } catch {
+    return "prompt";
+  }
+}
+
 async function restorePersistedDirectory() {
   const rootHandle = await getPersistedRootHandle();
 
@@ -2551,20 +2588,53 @@ async function restorePersistedDirectory() {
     return false;
   }
 
-  if ((await queryHandlePermission(rootHandle, "read")) !== "granted") {
+  state.rememberedRootHandle = rootHandle;
+
+  if ((await queryHandlePermission(rootHandle, "readwrite")) !== "granted") {
+    state.isRestorePending = true;
+    updateStatus();
     return false;
   }
 
+  return activateRootHandle(rootHandle);
+}
+
+async function requestRememberedDirectoryAccess() {
+  const rootHandle = state.rememberedRootHandle || (await getPersistedRootHandle());
+
+  if (!rootHandle) {
+    openDirectoryHelpDialog();
+    return false;
+  }
+
+  state.rememberedRootHandle = rootHandle;
+  const permission = await requestHandlePermission(rootHandle, "readwrite");
+
+  if (permission !== "granted") {
+    state.isRestorePending = true;
+    updateStatus();
+    return false;
+  }
+
+  return activateRootHandle(rootHandle);
+}
+
+async function activateRootHandle(rootHandle) {
   try {
     const sessionsDirHandle = await rootHandle.getDirectoryHandle("sessions");
     state.rootHandle = rootHandle;
     state.sessionsDirHandle = sessionsDirHandle;
+    state.rememberedRootHandle = rootHandle;
+    state.isRestorePending = false;
     elements.reloadButton.disabled = false;
     await scanSessions();
     return true;
   } catch (error) {
     if (error?.name === "NotFoundError") {
+      state.rememberedRootHandle = null;
+      state.isRestorePending = false;
       await clearPersistedRootHandle();
+      updateStatus();
       return false;
     }
 
@@ -2575,18 +2645,14 @@ async function restorePersistedDirectory() {
 async function pickDirectoryFromSystem() {
   try {
     const rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
-    const sessionsDirHandle = await rootHandle.getDirectoryHandle("sessions");
-    state.rootHandle = rootHandle;
-    state.sessionsDirHandle = sessionsDirHandle;
-    elements.reloadButton.disabled = false;
-
+    state.rememberedRootHandle = rootHandle;
     try {
       await persistRootHandle(rootHandle);
     } catch (error) {
       console.warn("Failed to persist selected directory.", error);
     }
 
-    await scanSessions();
+    await activateRootHandle(rootHandle);
   } catch (error) {
     if (error?.name === "AbortError") {
       return;
@@ -3053,6 +3119,8 @@ function renderDetails(session) {
     elements.commentaryToggle.disabled = true;
     elements.downloadCurrentButton.disabled = true;
     elements.downloadCurrentButton.textContent = t("buttons.download");
+    resetCopyResumeButton();
+    elements.copyResumeButton.disabled = true;
     elements.deleteCurrentButton.disabled = true;
     elements.deleteCurrentButton.textContent = t("buttons.delete");
     return;
@@ -3070,6 +3138,8 @@ function renderDetails(session) {
   elements.commentaryToggle.disabled = false;
   elements.downloadCurrentButton.disabled = !isSessionDownloadable(session);
   elements.downloadCurrentButton.textContent = t("buttons.download");
+  resetCopyResumeButton();
+  elements.copyResumeButton.disabled = false;
   elements.deleteCurrentButton.disabled = !isSessionDeletable(session);
   elements.deleteCurrentButton.textContent = t("buttons.delete");
 
@@ -3096,6 +3166,61 @@ async function downloadCurrentSession() {
   window.setTimeout(() => {
     URL.revokeObjectURL(url);
   }, 0);
+}
+
+async function copyResumeCommand() {
+  const session = getActiveSession();
+
+  if (!session) {
+    return;
+  }
+
+  const command = buildResumeCommand(session);
+  await writeClipboardText(command);
+  elements.copyResumeButton.textContent = t("buttons.resumeCopied");
+  elements.copyResumeButton.disabled = true;
+
+  if (state.resumeButtonResetTimer) {
+    window.clearTimeout(state.resumeButtonResetTimer);
+  }
+
+  state.resumeButtonResetTimer = window.setTimeout(() => {
+    state.resumeButtonResetTimer = null;
+    const activeSession = getActiveSession();
+    resetCopyResumeButton();
+    elements.copyResumeButton.disabled = !activeSession;
+  }, RESUME_COMMAND_RESET_DELAY);
+}
+
+function resetCopyResumeButton() {
+  if (state.resumeButtonResetTimer) {
+    window.clearTimeout(state.resumeButtonResetTimer);
+    state.resumeButtonResetTimer = null;
+  }
+
+  elements.copyResumeButton.textContent = t("buttons.copyResume");
+}
+
+function buildResumeCommand(session) {
+  return `codex resume ${session.id}`;
+}
+
+async function writeClipboardText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.inset = "0 auto auto 0";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
 }
 
 async function renderTimelinePanels(session) {
@@ -3510,6 +3635,8 @@ function stripInjectedPromptMetadata(text) {
     /^<apps_instructions>[\s\S]*?<\/apps_instructions>\s*/i,
     /^<skills_instructions>[\s\S]*?<\/skills_instructions>\s*/i,
     /^<plugins_instructions>[\s\S]*?<\/plugins_instructions>\s*/i,
+    /^#{1,6}\s*My request for Codex:\s*/i,
+    /^My request for Codex:\s*/i,
   ];
 
   let cleaned = text.trim();
@@ -3544,15 +3671,21 @@ function updateStatus() {
   setText(elements.metricSize, state.sessions.length ? formatBytes(totalSize) : "-");
   setText(elements.metricStale, String(staleCount));
   setText(elements.metricSelected, String(state.selectedIds.size));
-  elements.statusDirectory.textContent = state.rootHandle?.name || "-";
+  elements.statusDirectory.textContent = state.rootHandle?.name || state.rememberedRootHandle?.name || "-";
   elements.statusScannedAt.textContent = state.lastScannedAt
     ? formatDateTime(state.lastScannedAt.toISOString())
     : "-";
   elements.statusBadge.textContent = state.rootHandle ? t("badge.connected") : t("badge.disconnected");
-  setBadgeTone(elements.statusBadge, state.rootHandle ? "success" : "neutral");
+  setBadgeTone(elements.statusBadge, state.rootHandle ? "success" : state.isRestorePending ? "warning" : "neutral");
   elements.statusText.textContent = state.rootHandle
     ? t("statusText.connectedCount", { count: state.sessions.length })
-    : t("statusText.unselectedDir");
+    : state.isRestorePending && state.rememberedRootHandle?.name
+      ? t("statusText.savedDirectoryNeedsPermission", { name: state.rememberedRootHandle.name })
+      : t("statusText.unselectedDir");
+  elements.pickDirectoryButton.textContent = state.isRestorePending
+    ? t("buttons.requestPermission")
+    : t("buttons.pickDirectory");
+  elements.reloadButton.disabled = !state.rootHandle || !state.sessionsDirHandle;
 
   if (!state.filteredSessions.length) {
     elements.listCaption.textContent = state.rootHandle ? t("list.zeroResults") : t("list.unscanned");
@@ -4019,11 +4152,13 @@ function applyLocale(locale) {
   setText(elements.prevPageButton, t("buttons.prevPage"));
   setText(elements.nextPageButton, t("buttons.nextPage"));
   setText(elements.downloadCurrentButton, t("buttons.download"));
+  setText(elements.copyResumeButton, t("buttons.copyResume"));
   setText(elements.modalCancelButton, t("buttons.cancel"));
   elements.commentaryToggle.setAttribute("aria-label", t("detail.showCommentary"));
   elements.commentaryToggle.setAttribute("title", t("detail.showCommentary"));
   elements.repoLink.setAttribute("aria-label", t("buttons.repository"));
   elements.repoLink.setAttribute("title", t("buttons.repository"));
+  updateStatus();
 
   elements.localeToggleButton.textContent = t("buttons.localeIndicator");
   elements.localeToggleButton.setAttribute("aria-label", t("locale.switchTo"));
