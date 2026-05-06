@@ -213,7 +213,6 @@ p {
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(8px);
 }
 
 .hero {
@@ -888,13 +887,9 @@ dd {
   border: 1px solid var(--border);
   background: var(--surface-soft);
   padding: 8px;
-  content-visibility: auto;
-  contain: layout paint style;
-  contain-intrinsic-size: 116px;
   transition:
-    border-color 180ms ease,
-    background-color 180ms ease,
-    transform 180ms ease;
+    border-color 120ms ease,
+    background-color 120ms ease;
 }
 
 .session-item.is-active {
@@ -1033,7 +1028,6 @@ dd {
   .list-surface,
   .detail-surface {
     background: var(--surface-strong);
-    backdrop-filter: none;
   }
 }
 
@@ -1215,7 +1209,7 @@ dd {
   gap: 10px;
   content-visibility: auto;
   contain: layout paint style;
-  contain-intrinsic-size: 180px;
+  contain-intrinsic-size: auto 240px;
 }
 
 .conversation-item::before {
