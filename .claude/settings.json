@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(sed '1d;$d')",
-      "Bash(node --check /tmp/check.mjs)"
+      "Bash(node --check /tmp/check.mjs)",
+      "Bash(find /root/.claude/projects -maxdepth 1 -type d | head -25)",
+      "Read(//root/.claude/projects/**)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3)",
+      "Bash(node --check assets/app.js)",
+      "Bash(node -e ' *)"
     ]
   }
 }
