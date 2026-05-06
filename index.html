@@ -315,46 +315,6 @@ h1 {
   align-items: center;
 }
 
-.section-head-trail {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.panel-collapse-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-soft);
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.18s ease, border-color 0.15s ease;
-}
-
-.panel-collapse-toggle:hover {
-  background: color-mix(in srgb, var(--text), transparent 92%);
-  border-color: var(--border);
-  color: var(--text);
-}
-
-.panel-collapse-toggle:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--info), transparent 50%);
-  outline-offset: 2px;
-}
-
-.panel-collapse-toggle svg {
-  transition: transform 0.18s ease;
-}
-
-.compact-surface[data-collapsed="true"] .panel-collapse-toggle svg {
-  transform: rotate(-90deg);
-}
-
 .compact-surface[data-collapsed="true"] {
   align-content: start;
 }
@@ -363,8 +323,26 @@ h1 {
   display: none !important;
 }
 
-.top-panels[data-all-collapsed="true"] {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+#panel-collapse-toggle {
+  color: var(--text-soft);
+}
+
+#panel-collapse-toggle[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent), transparent 86%);
+  border-color: color-mix(in srgb, var(--accent), transparent 60%);
+  color: var(--text);
+}
+
+#panel-collapse-toggle:hover {
+  color: var(--text);
+}
+
+#panel-collapse-toggle svg {
+  transition: transform 0.18s ease;
+}
+
+#panel-collapse-toggle[aria-pressed="true"] svg {
+  transform: scaleY(0.6);
 }
 
 .section-title {
@@ -1863,6 +1841,16 @@ dd {
               EN
             </button>
             <button
+              id="panel-collapse-toggle"
+              class="theme-button icon-button"
+              type="button"
+              aria-label="折叠状态/筛选/统计 (Ctrl/⌘ + \)"
+              title="折叠状态/筛选/统计 (Ctrl/⌘ + \)"
+              aria-pressed="false"
+            >
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M3 5h10M3 8h10M3 11h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+            <button
               id="theme-toggle-button"
               class="theme-button icon-button"
               type="button"
@@ -1878,12 +1866,7 @@ dd {
           <section class="surface compact-surface" data-panel="status">
             <div class="section-head">
               <h2 id="status-title" class="section-title">状态</h2>
-              <div class="section-head-trail">
-                <span id="status-badge" class="badge" data-tone="neutral">未连接</span>
-                <button class="panel-collapse-toggle" type="button" data-panel-toggle="status" aria-expanded="true" aria-label="折叠状态" title="折叠状态">
-                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6.5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
+              <span id="status-badge" class="badge" data-tone="neutral">未连接</span>
             </div>
             <p id="status-text" class="body-copy">未选择目录</p>
             <dl class="meta-grid compact-meta">
@@ -1919,11 +1902,6 @@ dd {
           <section class="surface compact-surface" data-panel="filter">
             <div class="section-head">
               <h2 id="filter-title" class="section-title">筛选</h2>
-              <div class="section-head-trail">
-                <button class="panel-collapse-toggle" type="button" data-panel-toggle="filter" aria-expanded="true" aria-label="折叠筛选" title="折叠筛选">
-                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6.5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
             </div>
             <div class="filter-grid">
               <label class="field search-field">
@@ -1957,11 +1935,6 @@ dd {
           <section class="surface compact-surface metrics-surface" data-panel="metrics">
             <div class="section-head">
               <h2 id="metrics-title" class="section-title">统计</h2>
-              <div class="section-head-trail">
-                <button class="panel-collapse-toggle" type="button" data-panel-toggle="metrics" aria-expanded="true" aria-label="折叠统计" title="折叠统计">
-                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4 6.5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-              </div>
             </div>
             <div class="metric-grid">
               <article class="metric-card">
@@ -2205,7 +2178,7 @@ dd {
 const THEME_STORAGE_KEY = "codex-session-console-theme";
 const LOCALE_STORAGE_KEY = "codex-session-console-locale";
 const COMMENTARY_VISIBILITY_STORAGE_KEY = "codex-session-console-show-commentary";
-const COLLAPSED_PANELS_STORAGE_KEY = "codex-session-console-collapsed-panels";
+const TOP_PANELS_COLLAPSED_STORAGE_KEY = "codex-session-console-top-panels-collapsed";
 const TOP_PANEL_KEYS = ["status", "filter", "metrics"];
 const HANDLE_DB_NAME = "codex-session-console";
 const HANDLE_DB_VERSION = 1;
@@ -2368,12 +2341,8 @@ const I18N = {
       switchToDark: "切换到深色模式",
     },
     panel: {
-      collapseStatus: "折叠状态 (Ctrl/⌘ + \\)",
-      expandStatus: "展开状态 (Ctrl/⌘ + \\)",
-      collapseFilter: "折叠筛选 (Ctrl/⌘ + \\)",
-      expandFilter: "展开筛选 (Ctrl/⌘ + \\)",
-      collapseMetrics: "折叠统计 (Ctrl/⌘ + \\)",
-      expandMetrics: "展开统计 (Ctrl/⌘ + \\)",
+      collapseAll: "折叠状态/筛选/统计 (Ctrl/⌘ + \\)",
+      expandAll: "展开状态/筛选/统计 (Ctrl/⌘ + \\)",
     },
     errors: {
       selectCodexRoot: "请先选择包含 sessions 目录的 .codex 文件夹.",
@@ -2534,12 +2503,8 @@ const I18N = {
       switchToDark: "Switch to dark mode",
     },
     panel: {
-      collapseStatus: "Collapse status (Ctrl/⌘ + \\)",
-      expandStatus: "Expand status (Ctrl/⌘ + \\)",
-      collapseFilter: "Collapse filters (Ctrl/⌘ + \\)",
-      expandFilter: "Expand filters (Ctrl/⌘ + \\)",
-      collapseMetrics: "Collapse stats (Ctrl/⌘ + \\)",
-      expandMetrics: "Expand stats (Ctrl/⌘ + \\)",
+      collapseAll: "Collapse status / filters / stats (Ctrl/⌘ + \\)",
+      expandAll: "Expand status / filters / stats (Ctrl/⌘ + \\)",
     },
     errors: {
       selectCodexRoot: "Please select a .codex directory that contains a sessions folder.",
@@ -2564,7 +2529,7 @@ const state = {
   locale: "zh-CN",
   themeMode: "light",
   showCommentary: false,
-  collapsedPanels: new Set(),
+  topPanelsCollapsed: false,
   modalKind: null,
   pendingActionMode: null,
   countdownRemaining: 0,
@@ -3108,88 +3073,47 @@ function getInitialCommentaryVisibility() {
   return localStorage.getItem(COMMENTARY_VISIBILITY_STORAGE_KEY) === "1";
 }
 
-function getInitialCollapsedPanels() {
-  try {
-    const raw = localStorage.getItem(COLLAPSED_PANELS_STORAGE_KEY);
-    if (!raw) return new Set();
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Set();
-    return new Set(parsed.filter((key) => TOP_PANEL_KEYS.includes(key)));
-  } catch {
-    return new Set();
-  }
+function getInitialTopPanelsCollapsed() {
+  return localStorage.getItem(TOP_PANELS_COLLAPSED_STORAGE_KEY) === "1";
 }
 
-function persistCollapsedPanels(set) {
+function persistTopPanelsCollapsed(collapsed) {
   try {
-    localStorage.setItem(COLLAPSED_PANELS_STORAGE_KEY, JSON.stringify(Array.from(set)));
+    localStorage.setItem(TOP_PANELS_COLLAPSED_STORAGE_KEY, collapsed ? "1" : "0");
   } catch {
     /* ignore quota/access errors */
   }
 }
 
-function applyPanelCollapsed(key, collapsed) {
-  const section = document.querySelector(`[data-panel="${key}"]`);
-  const toggle = document.querySelector(`[data-panel-toggle="${key}"]`);
-  if (!section) return;
+function applyTopPanelsCollapsed(collapsed) {
+  state.topPanelsCollapsed = Boolean(collapsed);
 
-  section.dataset.collapsed = collapsed ? "true" : "false";
+  TOP_PANEL_KEYS.forEach((key) => {
+    const section = document.querySelector(`[data-panel="${key}"]`);
+    if (section) {
+      section.dataset.collapsed = state.topPanelsCollapsed ? "true" : "false";
+    }
+  });
+
+  const toggle = document.querySelector("#panel-collapse-toggle");
   if (toggle) {
-    toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
-    refreshPanelToggleLabel(toggle, key, collapsed);
+    toggle.setAttribute("aria-pressed", state.topPanelsCollapsed ? "true" : "false");
+    refreshPanelCollapseToggleLabel();
   }
 }
 
-function refreshPanelToggleLabel(toggle, key, collapsed) {
-  const capitalized = key.charAt(0).toUpperCase() + key.slice(1);
-  const i18nKey = `panel.${collapsed ? "expand" : "collapse"}${capitalized}`;
-  const label = t(i18nKey);
+function refreshPanelCollapseToggleLabel() {
+  const toggle = document.querySelector("#panel-collapse-toggle");
+  if (!toggle) return;
+  const label = t(state.topPanelsCollapsed ? "panel.expandAll" : "panel.collapseAll");
   toggle.setAttribute("aria-label", label);
   toggle.setAttribute("title", label);
 }
 
-function refreshTopPanelsCollapsedAttr() {
-  const topPanels = document.querySelector(".top-panels");
-  if (!topPanels) return;
-  const allCollapsed = TOP_PANEL_KEYS.every((key) => state.collapsedPanels.has(key));
-  topPanels.dataset.allCollapsed = allCollapsed ? "true" : "false";
-}
-
-function setPanelCollapsed(key, collapsed) {
-  if (collapsed) {
-    state.collapsedPanels.add(key);
-  } else {
-    state.collapsedPanels.delete(key);
-  }
-  applyPanelCollapsed(key, collapsed);
-  refreshTopPanelsCollapsedAttr();
-  persistCollapsedPanels(state.collapsedPanels);
-}
-
-function toggleAllTopPanels() {
-  const someExpanded = TOP_PANEL_KEYS.some((key) => !state.collapsedPanels.has(key));
-  const targetCollapsed = someExpanded;
-
-  TOP_PANEL_KEYS.forEach((key) => {
-    if (targetCollapsed) {
-      state.collapsedPanels.add(key);
-    } else {
-      state.collapsedPanels.delete(key);
-    }
-    applyPanelCollapsed(key, targetCollapsed);
-  });
-
-  refreshTopPanelsCollapsedAttr();
-  persistCollapsedPanels(state.collapsedPanels);
-}
-
-function refreshAllPanelToggleLabels() {
-  TOP_PANEL_KEYS.forEach((key) => {
-    const toggle = document.querySelector(`[data-panel-toggle="${key}"]`);
-    if (toggle) {
-      refreshPanelToggleLabel(toggle, key, state.collapsedPanels.has(key));
-    }
-  });
+function toggleTopPanels() {
+  const next = !state.topPanelsCollapsed;
+  applyTopPanelsCollapsed(next);
+  persistTopPanelsCollapsed(next);
 }
 
 function isEditableTarget(target) {
@@ -3200,28 +3124,22 @@ function isEditableTarget(target) {
 }
 
 function initTopPanelCollapse() {
-  state.collapsedPanels = getInitialCollapsedPanels();
+  applyTopPanelsCollapsed(getInitialTopPanelsCollapsed());
 
-  TOP_PANEL_KEYS.forEach((key) => {
-    applyPanelCollapsed(key, state.collapsedPanels.has(key));
-  });
-  refreshTopPanelsCollapsedAttr();
-
-  document.querySelectorAll("[data-panel-toggle]").forEach((toggle) => {
+  const toggle = document.querySelector("#panel-collapse-toggle");
+  if (toggle) {
     toggle.addEventListener("click", (event) => {
       event.preventDefault();
-      const key = toggle.dataset.panelToggle;
-      if (!TOP_PANEL_KEYS.includes(key)) return;
-      setPanelCollapsed(key, !state.collapsedPanels.has(key));
+      toggleTopPanels();
     });
-  });
+  }
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "\\" || event.shiftKey || event.altKey) return;
     if (!(event.ctrlKey || event.metaKey)) return;
     if (isEditableTarget(event.target)) return;
     event.preventDefault();
-    toggleAllTopPanels();
+    toggleTopPanels();
   });
 }
 
@@ -3959,12 +3877,20 @@ function finalizeTimeline(items) {
 }
 
 function getOutlineTitle(body) {
-  return (
-    String(body || "")
-      .split(/\n+/)
-      .map((line) => line.trim())
-      .find(Boolean) || body
-  );
+  const raw = String(body || "");
+  const lines = raw.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+
+  const skipPatterns = [
+    /^Context from my IDE setup:?\s*$/i,
+    /^<\/?[a-zA-Z][\w:-]*[^>]*>\s*$/,
+    /^My request for Codex:?\s*$/i,
+    /^#{1,6}\s*My request for Codex:?\s*$/i,
+  ];
+
+  const isSkippable = (line) => skipPatterns.some((re) => re.test(line));
+
+  const firstReal = lines.find((line) => !isSkippable(line));
+  return firstReal || lines[0] || raw;
 }
 
 function isRenderableTimelineItem(item) {
@@ -3996,6 +3922,12 @@ function stripInjectedPromptMetadata(text) {
     /^<apps_instructions>[\s\S]*?<\/apps_instructions>\s*/i,
     /^<skills_instructions>[\s\S]*?<\/skills_instructions>\s*/i,
     /^<plugins_instructions>[\s\S]*?<\/plugins_instructions>\s*/i,
+    /^<user_instructions>[\s\S]*?<\/user_instructions>\s*/i,
+    /^<reminder>[\s\S]*?<\/reminder>\s*/i,
+    /^<system-reminder>[\s\S]*?<\/system-reminder>\s*/i,
+    /^<user-prompt-submit-hook>[\s\S]*?<\/user-prompt-submit-hook>\s*/i,
+    /^<ide_[a-zA-Z0-9_-]+>[\s\S]*?<\/ide_[a-zA-Z0-9_-]+>\s*/,
+    /^Context from my IDE setup:[ \t]*\n*/i,
     /^#{1,6}\s*My request for Codex:\s*/i,
     /^My request for Codex:\s*/i,
   ];
@@ -4526,7 +4458,7 @@ function applyLocale(locale) {
   elements.localeToggleButton.setAttribute("title", t("locale.switchTo"));
   elements.themeToggleButton.setAttribute("aria-label", getThemeToggleLabel(state.themeMode));
   elements.themeToggleButton.setAttribute("title", getThemeToggleLabel(state.themeMode));
-  refreshAllPanelToggleLabels();
+  refreshPanelCollapseToggleLabel();
 
   if (state.modalKind && !elements.modal.hidden) {
     refreshModalDialog();
